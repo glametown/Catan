@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+
+    match /lobbies/{lobbyId} {
+      // Anyone signed in can browse lobbies and look one up by code.
+      allow read: if signedIn();
+
+      // Create a lobby that you host.
+      allow create: if signedIn()
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.players.size() == 1
+        && request.resource.data.players[0].uid == request.auth.uid;
+
+      // Host can change anything; other players may only join/leave while waiting
+      // (they can only touch the `players` list).
+      allow update: if signedIn() && (
+        resource.data.hostUid == request.auth.uid
+        || (
+          resource.data.status == 'waiting'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players'])
+          && request.resource.data.players.size() <= resource.data.maxPlayers
+        )
+      );
+
+      allow delete: if signedIn() && resource.data.hostUid == request.auth.uid;
+
+      // Authoritative game state: readable by anyone signed in, writable only by the host.
+      match /state/{doc} {
+        allow read: if signedIn();
+        allow write: if signedIn()
+          && get(/databases/$(database)/documents/lobbies/$(lobbyId)).data.hostUid == request.auth.uid;
+      }
+
+      // Player requests: anyone can submit their own; only the host reads / clears them.
+      match /actions/{actionId} {
+        allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+        allow read, delete: if signedIn()
+          && get(/databases/$(database)/documents/lobbies/$(lobbyId)).data.hostUid == request.auth.uid;
+      }
+    }
+  }
+}
