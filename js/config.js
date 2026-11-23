@@ -6,6 +6,7 @@
 // These values are NOT secrets (they identify your project; security comes from
 // firestore.rules and the authorised-domain list in Firebase Auth).
 // ---------------------------------------------------------------------------
+/*
 export const firebaseConfig = {
   apiKey: '',
   authDomain: '',
@@ -13,6 +14,16 @@ export const firebaseConfig = {
   storageBucket: '',
   messagingSenderId: '',
   appId: '',
+};
+*/
+export const firebaseConfig = {
+  apiKey: "AIzaSyB8iVG6p1gXL4CHSGm5EFGhKfXdvucGCRU",
+  authDomain: "game-catan.firebaseapp.com",
+  projectId: "game-catan",
+  storageBucket: "game-catan.firebasestorage.app",
+  messagingSenderId: "594734912272",
+  appId: "1:594734912272:web:3a0d5f1e341d395ed44b95",
+  measurementId: "G-7G090RY1WY"
 };
 
 export const ONLINE_ENABLED = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
